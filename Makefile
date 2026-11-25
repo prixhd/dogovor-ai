@@ -6,20 +6,31 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 
 .PHONY: dev db up down stop clean ports-free test test-api test-web lint lint-api lint-web e2e build
 
-## ports-free: fail early with a clear message if 3000/8080 are taken
+# Is our own container stack (api/web) running?
+STACK_UP = [ -n "$$($(COMPOSE) --profile full ps --status running -q api web 2>/dev/null)" ]
+
+## ports-free: fail early with a clear message if 3000/8080 are taken.
+## With ALLOW_STACK=1 (used by `up`), ports held by our own containers are fine.
 ports-free:
-	@for p in 3000 8080; do \
+	@if [ "$(ALLOW_STACK)" = "1" ] && $(STACK_UP); then exit 0; fi; \
+	for p in 3000 8080; do \
 	  if lsof -nP -iTCP:$$p -sTCP:LISTEN >/dev/null 2>&1; then \
 	    echo "Порт $$p занят:"; lsof -nP -iTCP:$$p -sTCP:LISTEN | tail -n +2; \
-	    echo "Остановите процесс (make stop для локального dev, make down для контейнеров)."; exit 1; \
+	    if $(STACK_UP); then echo "Это запущенные контейнеры договор.ai: сайт уже работает на http://localhost:3000. Остановить: make down"; \
+	    else echo "Остановите процесс: make stop (локальный dev) или make down (контейнеры)."; fi; \
+	    exit 1; \
 	  fi; \
 	done
 
-## stop: kill locally running dev servers on 3000/8080
+## stop: kill locally running dev servers on 3000/8080 (never Docker itself)
 stop:
-	-@lsof -ti tcp:3000 -sTCP:LISTEN | xargs kill 2>/dev/null; true
-	-@lsof -ti tcp:8080 -sTCP:LISTEN | xargs kill 2>/dev/null; true
-	@echo "Локальные dev-серверы остановлены"
+	@for p in 3000 8080; do \
+	  for pid in $$(lsof -ti tcp:$$p -sTCP:LISTEN 2>/dev/null); do \
+	    case "$$(ps -p $$pid -o comm= 2>/dev/null)" in *[Dd]ocker*|*vpnkit*) ;; *) kill $$pid 2>/dev/null ;; esac; \
+	  done; \
+	done; \
+	echo "Локальные dev-серверы остановлены"; \
+	if $(STACK_UP); then echo "Контейнеры договор.ai ещё работают (остановить: make down)"; fi
 
 ## clean: remove Next.js build caches (fixes ENOENT .next/... errors)
 clean:
@@ -36,7 +47,8 @@ db:
 	$(COMPOSE) up -d --wait postgres
 
 ## up: run the whole stack in containers
-up: ports-free
+up:
+	@$(MAKE) --no-print-directory ports-free ALLOW_STACK=1
 	$(COMPOSE) --profile full up -d --build --wait
 	@echo "Готово: сайт http://localhost:3000, API http://localhost:8080/healthz"
 
