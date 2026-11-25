@@ -16,6 +16,7 @@ type Config struct {
 	TemplatesDir       string
 	KnowledgeDir       string
 	CookieSecure       bool
+	TrustProxy         bool
 	LLMProvider        string
 	GigaChatAuthKey    string
 	GigaChatScope      string
@@ -40,6 +41,7 @@ func Load() Config {
 		TemplatesDir:       env("TEMPLATES_DIR", "../../templates"),
 		KnowledgeDir:       env("KNOWLEDGE_DIR", "../../knowledge"),
 		CookieSecure:       envBool("COOKIE_SECURE", strings.HasPrefix(appURL, "https://")),
+		TrustProxy:         envBool("TRUST_PROXY", true),
 		LLMProvider:        env("LLM_PROVIDER", "stub"),
 		GigaChatAuthKey:    os.Getenv("GIGACHAT_AUTH_KEY"),
 		GigaChatScope:      env("GIGACHAT_SCOPE", "GIGACHAT_API_PERS"),

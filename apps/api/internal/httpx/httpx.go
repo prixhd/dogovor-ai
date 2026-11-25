@@ -6,7 +6,9 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -81,4 +83,23 @@ func Logger(log *slog.Logger) func(http.Handler) http.Handler {
 				"ms", time.Since(start).Milliseconds())
 		})
 	}
+}
+
+// ClientIP returns the caller IP. When trustProxy is set (the API sits behind
+// the Next.js proxy) it uses the right-most X-Forwarded-For entry, which is
+// the one appended by our own proxy and cannot be forged by the client.
+func ClientIP(r *http.Request, trustProxy bool) string {
+	if trustProxy {
+		if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+			parts := strings.Split(xff, ",")
+			if ip := strings.TrimSpace(parts[len(parts)-1]); net.ParseIP(ip) != nil {
+				return ip
+			}
+		}
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }

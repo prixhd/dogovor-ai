@@ -13,19 +13,21 @@ import (
 
 	"github.com/dogovor-ai/api/internal/config"
 	"github.com/dogovor-ai/api/internal/httpx"
+	"github.com/dogovor-ai/api/internal/tmpl"
 )
 
 // Server holds shared dependencies of all handlers.
 type Server struct {
-	Cfg config.Config
-	DB  *pgxpool.Pool
-	Log *slog.Logger
+	Cfg       config.Config
+	DB        *pgxpool.Pool
+	Log       *slog.Logger
+	Templates *tmpl.Registry
 }
 
 // Router builds the chi router with all routes.
 func (s *Server) Router() http.Handler {
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP, middleware.Recoverer, httpx.SecurityHeaders, httpx.Logger(s.Log))
+	r.Use(middleware.Recoverer, httpx.SecurityHeaders, httpx.Logger(s.Log))
 
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -39,10 +41,19 @@ func (s *Server) Router() http.Handler {
 		}
 		httpx.JSON(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
+
+	r.Get("/templates", s.listTemplates)
+	r.Get("/templates/{slug}", s.getTemplate)
+	r.Post("/templates/{slug}/preview", s.previewTemplate)
 	return r
 }
 
 // New constructs a Server.
 func New(cfg config.Config, pool *pgxpool.Pool, log *slog.Logger) (*Server, error) {
-	return &Server{Cfg: cfg, DB: pool, Log: log}, nil
+	reg, err := tmpl.LoadDir(cfg.TemplatesDir)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("templates loaded", "count", len(reg.List()), "pdf", tmpl.PDFAvailable())
+	return &Server{Cfg: cfg, DB: pool, Log: log, Templates: reg}, nil
 }

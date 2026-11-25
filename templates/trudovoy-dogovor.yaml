@@ -1,0 +1,139 @@
+slug: trudovoy-dogovor
+version: 1
+order: 1
+title: Трудовой договор
+category: labor
+description: Бессрочный или срочный договор с работником. Испытательный срок, режим работы, оплата и отпуск по ТК РФ.
+status: draft
+minutes: 7
+keywords: [работа, работник, найм, сотрудник, трудоустройство, тк]
+roles:
+  - id: employer
+    label: Работодатель
+    kinds: [org, ip]
+  - id: employee
+    label: Работник
+    kinds: [person]
+
+steps:
+  - id: general
+    title: Общие сведения
+    hint: Номер, дата и место заключения договора.
+    fields:
+      - { id: number, label: "Номер договора", type: text, placeholder: "14", required: true }
+      - { id: city, label: "Город", type: text, placeholder: Москва, required: true, default: Москва }
+      - { id: date, label: "Дата договора", type: date, required: true }
+
+  - id: employer
+    title: Работодатель
+    role: employer
+    hint: Можно заполнить из карточки организации или ИП.
+    fields:
+      - { id: employer.name, label: "Наименование работодателя", type: text, role: employer, bind: name, required: true, placeholder: ООО «Ромашка» }
+      - { id: employer.signer, label: "ФИО подписанта", type: text, role: employer, bind: signer_name, required: true, placeholder: Иванов Иван Иванович }
+      - { id: employer.signer_position, label: "Должность подписанта", type: text, role: employer, bind: signer_position, placeholder: Генеральный директор, default: Генеральный директор }
+      - { id: employer.basis, label: "Действует на основании", type: text, role: employer, bind: signer_basis, placeholder: Устава, default: Устава }
+      - { id: employer.inn, label: "ИНН", type: inn, role: employer, bind: inn, required: true }
+      - { id: employer.ogrn, label: "ОГРН / ОГРНИП", type: ogrn, role: employer, bind: ogrn }
+      - { id: employer.address, label: "Адрес", type: text, role: employer, bind: address, required: true }
+
+  - id: employee
+    title: Работник
+    role: employee
+    hint: Паспортные данные остаются в документе и не передаются ИИ.
+    fields:
+      - { id: employee.name, label: "ФИО работника", type: text, role: employee, bind: name, required: true, placeholder: Петров Пётр Петрович }
+      - { id: employee.passport, label: "Паспорт (серия и номер)", type: text, role: employee, bind: passport, sensitive: true, placeholder: "4510 123456" }
+      - { id: employee.passport_issued, label: "Кем и когда выдан", type: text, role: employee, bind: passport_issued, sensitive: true }
+      - { id: employee.address, label: "Адрес регистрации", type: text, role: employee, bind: address, required: true, sensitive: true }
+
+  - id: job
+    title: Работа и срок
+    fields:
+      - { id: position, label: "Должность", type: text, required: true, placeholder: Менеджер по продажам }
+      - { id: department, label: "Структурное подразделение", type: text, placeholder: Отдел продаж }
+      - id: workplace
+        label: Формат работы
+        type: select
+        default: office
+        options:
+          - { value: office, label: в офисе работодателя }
+          - { value: remote, label: дистанционно }
+      - { id: work_address, label: "Адрес места работы", type: text, show_if: workplace == office }
+      - { id: start_date, label: "Дата начала работы", type: date, required: true }
+      - id: term
+        label: Срок договора
+        type: select
+        default: indefinite
+        options:
+          - { value: indefinite, label: на неопределённый срок }
+          - { value: fixed, label: срочный }
+      - { id: end_date, label: "Дата окончания", type: date, required: true, show_if: term == fixed }
+      - { id: fixed_reason, label: "Основание срочного договора (ст. 59 ТК РФ)", type: text, required: true, show_if: term == fixed, placeholder: на время исполнения обязанностей отсутствующего работника }
+      - { id: probation, label: "Испытательный срок", type: toggle, hint: "Не более 3 месяцев, для руководителей до 6 (ст. 70 ТК РФ)" }
+      - { id: probation_months, label: "Срок испытания, месяцев", type: number, min: 1, max: 6, required: true, show_if: probation, default: 3 }
+
+  - id: pay
+    title: Оплата и режим
+    fields:
+      - { id: salary, label: "Оклад в месяц, руб.", type: money, required: true, placeholder: "80000" }
+      - { id: pay_day_1, label: "Первая выплата (число месяца)", type: number, min: 1, max: 31, default: 10 }
+      - { id: pay_day_2, label: "Вторая выплата (число месяца)", type: number, min: 1, max: 31, default: 25 }
+      - id: schedule
+        label: Режим работы
+        type: select
+        default: five
+        options:
+          - { value: five, label: пятидневная рабочая неделя с двумя выходными днями (суббота и воскресенье) }
+          - { value: shift, label: сменный график по графику сменности }
+      - { id: hours, label: "Часов в неделю", type: number, min: 1, max: 40, default: 40 }
+      - { id: vacation_days, label: "Ежегодный отпуск, календарных дней", type: number, min: 28, max: 60, default: 28 }
+
+body:
+  - { id: title, style: title, text: "ТРУДОВОЙ ДОГОВОР № {{number}}" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - id: preamble
+    style: para
+    text: >-
+      {{employer.name}}, ИНН {{employer.inn}}, именуемое в дальнейшем «Работодатель», в лице уполномоченного
+      представителя ({{employer.signer_position|lower}}) {{employer.signer}}, действующего на основании {{employer.basis}}, с одной стороны,
+      и {{employee.name}}, именуемый(-ая) в дальнейшем «Работник», с другой стороны, заключили настоящий трудовой договор о нижеследующем.
+
+  - { id: h-subject, style: heading, text: ПРЕДМЕТ ДОГОВОРА }
+  - { id: subject-1, style: clause, text: "Работодатель принимает Работника на должность {{position}}{{#if department}} в {{department}}{{/if}}, а Работник обязуется лично выполнять трудовую функцию по этой должности и соблюдать правила внутреннего трудового распорядка." }
+  - { id: subject-office, style: clause, if: workplace == office, text: "Место работы Работника: {{work_address}}." }
+  - { id: subject-remote, style: clause, if: workplace == remote, text: "Работник выполняет трудовую функцию дистанционно, вне места нахождения Работодателя. Взаимодействие сторон осуществляется с использованием информационно-телекоммуникационных сетей (глава 49.1 ТК РФ)." }
+  - { id: subject-main, style: clause, text: "Работа по настоящему договору является для Работника основной." }
+
+  - { id: h-term, style: heading, text: СРОК ДОГОВОРА }
+  - { id: term-start, style: clause, text: "Работник обязан приступить к работе {{start_date}}." }
+  - { id: term-indef, style: clause, if: term == indefinite, text: "Договор заключён на неопределённый срок." }
+  - { id: term-fixed, style: clause, if: term == fixed, text: "Договор является срочным и заключён до {{end_date}}. Основание заключения срочного договора: {{fixed_reason}} (статья 59 ТК РФ)." }
+  - { id: term-probation, style: clause, if: probation, text: "В целях проверки соответствия Работника поручаемой работе устанавливается испытание сроком {{probation_months}} мес. (статья 70 ТК РФ). В срок испытания не засчитываются период временной нетрудоспособности и другие периоды фактического отсутствия Работника на работе." }
+  - { id: term-no-probation, style: clause, if: "!probation", text: "Испытание при приёме на работу не устанавливается." }
+
+  - { id: h-pay, style: heading, text: ОПЛАТА ТРУДА }
+  - { id: pay-salary, style: clause, text: "Работнику устанавливается должностной оклад в размере {{salary}} в месяц." }
+  - { id: pay-days, style: clause, text: "Заработная плата выплачивается не реже чем каждые полмесяца: {{pay_day_1}}-го и {{pay_day_2}}-го числа каждого месяца (статья 136 ТК РФ)." }
+  - { id: pay-tax, style: clause, text: "Работодатель удерживает из заработной платы налог на доходы физических лиц в порядке, установленном законодательством Российской Федерации." }
+
+  - { id: h-time, style: heading, text: РАБОЧЕЕ ВРЕМЯ И ВРЕМЯ ОТДЫХА }
+  - { id: time-schedule, style: clause, text: "Работнику устанавливается {{schedule}}, продолжительность рабочего времени {{hours}} часов в неделю (статья 91 ТК РФ)." }
+  - { id: time-vacation, style: clause, text: "Работнику предоставляется ежегодный оплачиваемый отпуск продолжительностью {{vacation_days}} календарных дней (статья 115 ТК РФ)." }
+
+  - { id: h-duties, style: heading, text: ПРАВА И ОБЯЗАННОСТИ СТОРОН }
+  - { id: duties-employee, style: clause, text: "Работник обязан добросовестно исполнять трудовые обязанности, соблюдать правила внутреннего трудового распорядка, трудовую дисциплину и требования по охране труда, бережно относиться к имуществу Работодателя (статья 21 ТК РФ)." }
+  - { id: duties-employer, style: clause, text: "Работодатель обязан предоставить Работнику работу, обусловленную договором, обеспечить безопасные условия труда, своевременно и в полном размере выплачивать заработную плату, осуществлять обязательное социальное страхование Работника (статья 22 ТК РФ)." }
+
+  - { id: h-final, style: heading, text: ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ }
+  - { id: final-law, style: clause, text: "Во всём, что не предусмотрено настоящим договором, стороны руководствуются Трудовым кодексом Российской Федерации." }
+  - { id: final-change, style: clause, text: "Изменение условий договора допускается только по соглашению сторон в письменной форме (статья 72 ТК РФ)." }
+  - { id: final-copies, style: clause, text: "Договор составлен в двух экземплярах, имеющих одинаковую юридическую силу, по одному для каждой из сторон (статья 67 ТК РФ)." }
+
+  - { id: h-sign, style: heading, text: РЕКВИЗИТЫ И ПОДПИСИ СТОРОН }
+  - id: sign
+    style: cols
+    cols:
+      - "Работодатель:\n{{employer.name}}\nИНН {{employer.inn}}{{#if employer.ogrn}}, ОГРН {{employer.ogrn}}{{/if}}\nАдрес: {{employer.address}}\n\n{{employer.signer_position}}\n_____________ / {{employer.signer}}"
+      - "Работник:\n{{employee.name}}\nПаспорт: {{employee.passport}}\nВыдан: {{employee.passport_issued}}\nАдрес: {{employee.address}}\n\n_____________ / {{employee.name}}"
+  - { id: receipt, style: para, text: "Экземпляр договора получил(а): _____________ / {{employee.name}}" }
