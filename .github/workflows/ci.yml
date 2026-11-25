@@ -1,0 +1,28 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: dogovor, POSTGRES_PASSWORD: dogovor, POSTGRES_DB: dogovor }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U dogovor" --health-interval 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: apps/api/go.mod }
+      - run: cd apps/api && go vet ./... && go test ./... -count=1
+        env:
+          TEST_DATABASE_URL: postgres://dogovor:dogovor@localhost:5432/dogovor?sslmode=disable
+          TEMPLATES_DIR: ${{ github.workspace }}/templates
+      - uses: golangci/golangci-lint-action@v6
+        with: { working-directory: apps/api }
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: apps/web/package-lock.json }
+      - run: cd apps/web && npm ci && npm run lint && npx tsc --noEmit && npm test

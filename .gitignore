@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+out/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/api/bin/
+*.ogg
+.governor/
+.DS_Store
+coverage/
