@@ -13,6 +13,7 @@ import (
 
 	"github.com/dogovor-ai/api/internal/config"
 	"github.com/dogovor-ai/api/internal/httpx"
+	"github.com/dogovor-ai/api/internal/store"
 	"github.com/dogovor-ai/api/internal/tmpl"
 )
 
@@ -20,8 +21,10 @@ import (
 type Server struct {
 	Cfg       config.Config
 	DB        *pgxpool.Pool
+	Store     *store.Store
 	Log       *slog.Logger
 	Templates *tmpl.Registry
+	Yandex    YandexEndpoints
 }
 
 // Router builds the chi router with all routes.
@@ -44,7 +47,26 @@ func (s *Server) Router() http.Handler {
 
 	r.Get("/templates", s.listTemplates)
 	r.Get("/templates/{slug}", s.getTemplate)
-	r.Post("/templates/{slug}/preview", s.previewTemplate)
+
+	r.Group(func(r chi.Router) {
+		r.Use(s.withSession, s.csrfProtect)
+		r.Post("/templates/{slug}/preview", s.previewTemplate)
+
+		r.Get("/auth/me", s.me)
+		r.Post("/auth/register", s.register)
+		r.Post("/auth/login", s.login)
+		r.Post("/auth/logout", s.logout)
+		r.Get("/auth/yandex/start", s.yandexStart)
+		r.Get("/auth/yandex/callback", s.yandexCallback)
+
+		r.Group(func(r chi.Router) {
+			r.Use(requireUser)
+			r.Post("/documents", s.createDocument)
+			r.Get("/documents/{id}", s.getDocument)
+			r.Patch("/documents/{id}", s.updateDocument)
+			r.Get("/documents/{id}/export", s.exportDocument)
+		})
+	})
 	return r
 }
 
@@ -55,5 +77,5 @@ func New(cfg config.Config, pool *pgxpool.Pool, log *slog.Logger) (*Server, erro
 		return nil, err
 	}
 	log.Info("templates loaded", "count", len(reg.List()), "pdf", tmpl.PDFAvailable())
-	return &Server{Cfg: cfg, DB: pool, Log: log, Templates: reg}, nil
+	return &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: log, Templates: reg, Yandex: defaultYandex}, nil
 }

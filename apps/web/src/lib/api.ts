@@ -1,7 +1,7 @@
 /** Thin fetch wrapper for the Go API (proxied at /api). */
 
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string) {
+  constructor(public status: number, public code: string, message: string, public fields?: Record<string, string>) {
     super(message);
   }
 }
@@ -26,15 +26,17 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   });
   if (!res.ok) {
     let code = "http_error";
-    let message = "Что-то пошло не так. Попробуйте ещё раз.";
+    let message = res.status === 429 ? "Слишком много запросов. Попробуйте позже." : "Что-то пошло не так. Попробуйте ещё раз.";
+    let fields: Record<string, string> | undefined;
     try {
       const body = await res.json();
       code = body.error ?? code;
       message = body.message ?? message;
+      fields = body.fields;
     } catch {
       /* non-JSON error */
     }
-    throw new ApiError(res.status, code, message);
+    throw new ApiError(res.status, code, message, fields);
   }
   if (res.status === 204) return undefined as T;
   const ct = res.headers.get("content-type") ?? "";
