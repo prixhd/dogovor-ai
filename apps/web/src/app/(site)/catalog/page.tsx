@@ -5,6 +5,10 @@ import { CatalogView } from "./CatalogView";
 import { fetchCatalog } from "@/lib/catalog";
 import { Skeleton } from "@/components/ui/Card";
 
+// Rendered per request (catalog comes from the API, cached 60s); a build
+// without a running API must not bake an empty catalog into the page.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Каталог документов",
   description: "Трудовой договор, аренда, купля-продажа, займ, оказание услуг, доверенность: заполните анкету и скачайте DOCX.",

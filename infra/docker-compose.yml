@@ -28,7 +28,9 @@ services:
 
   web:
     profiles: [full]
-    build: { context: ../apps/web }
+    build:
+      context: ../apps/web
+      args: { API_INTERNAL_URL: "http://api:8080" }
     environment:
       API_INTERNAL_URL: http://api:8080
     depends_on: [api]

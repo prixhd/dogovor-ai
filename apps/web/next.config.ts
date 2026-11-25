@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
+// Rewrites are compiled at build time: the Docker build passes
+// API_INTERNAL_URL=http://api:8080 as a build arg.
 const apiUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8080";
 
 const nextConfig: NextConfig = {
+  // `next dev` writes to .next-dev so a production build (.next) can never
+  // corrupt a running dev server.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   output: "standalone",
   poweredByHeader: false,
   // The browser talks to the Go API through the same origin, so session

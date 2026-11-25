@@ -8,6 +8,10 @@ import { TemplateCard } from "@/components/catalog/TemplateCard";
 import { Skeleton } from "@/components/ui/Card";
 import { fetchCatalog } from "@/lib/catalog";
 
+// Rendered per request (catalog comes from the API, cached 60s); a build
+// without a running API must not bake an empty catalog into the page.
+export const dynamic = "force-dynamic";
+
 const faq = [
   ["Это бесплатно?", "Да. Анкета, предпросмотр, скачивание DOCX и ИИ-помощник с дневным лимитом вопросов бесплатны. Для скачивания и сохранения нужен вход: так документы и карточки сторон остаются в вашем профиле."],
   ["Можно ли использовать документ без юриста?", "Шаблоны составлены по тексту законов и типовой практике, но пока имеют статус «черновик»: юрист их ещё не проверил. Для важных сделок покажите документ специалисту."],
