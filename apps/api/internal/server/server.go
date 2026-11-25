@@ -61,7 +61,14 @@ func (s *Server) Router() http.Handler {
 
 		r.Group(func(r chi.Router) {
 			r.Use(requireUser)
+			r.Get("/documents", s.listDocuments)
 			r.Post("/documents", s.createDocument)
+			r.Post("/documents/{id}/duplicate", s.duplicateDocument)
+			r.Delete("/documents/{id}", s.deleteDocument)
+			r.Get("/parties", s.listParties)
+			r.Post("/parties", s.createParty)
+			r.Put("/parties/{id}", s.updateParty)
+			r.Delete("/parties/{id}", s.deleteParty)
 			r.Get("/documents/{id}", s.getDocument)
 			r.Patch("/documents/{id}", s.updateDocument)
 			r.Get("/documents/{id}/export", s.exportDocument)

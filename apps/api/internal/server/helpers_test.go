@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -27,7 +29,7 @@ func newTestServer(t *testing.T, mutate ...func(*Server)) (*httptest.Server, *Se
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg := config.Config{AppURL: "http://app.test", LLMProvider: "stub", AIGuestLimit: 3, AIUserLimit: 5, AIGlobalLimit: 1000,
+	cfg := config.Config{AppURL: "http://app.test", TrustProxy: true, LLMProvider: "stub", AIGuestLimit: 3, AIUserLimit: 5, AIGlobalLimit: 1000,
 		KnowledgeDir: filepath.Join("..", "..", "..", "..", "knowledge")}
 	s := &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: slog.New(slog.NewTextHandler(io.Discard, nil)), Templates: reg, Yandex: defaultYandex}
 	for _, m := range mutate {
@@ -51,7 +53,7 @@ type client struct {
 
 func newClient(t *testing.T, ts *httptest.Server) *client {
 	jar, _ := cookiejar.New(nil)
-	return &client{t: t, base: ts.URL, http: &http.Client{Jar: jar, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, ip: "198.51.100." + uuid.NewString()[:2]}
+	return &client{t: t, base: ts.URL, http: &http.Client{Jar: jar, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, ip: fmt.Sprintf("10.%d.%d.%d", rand.IntN(250), rand.IntN(250), rand.IntN(250)+1)}
 }
 
 func (c *client) csrf() string {
