@@ -1,0 +1,83 @@
+slug: zaym
+version: 1
+order: 5
+title: Договор займа с распиской
+category: finance
+description: "Заём денег между гражданами: сумма, срок возврата, проценты или беспроцентный, расписка в получении по главе 42 ГК РФ."
+status: draft
+minutes: 5
+keywords: [заём, займ, долг, расписка, деньги, в долг, кредит, проценты]
+roles:
+  - { id: lender, label: Займодавец, kinds: [person] }
+  - { id: borrower, label: Заёмщик, kinds: [person] }
+
+steps:
+  - id: general
+    title: Общие сведения
+    fields:
+      - { id: city, label: "Город", type: text, required: true, default: "Москва" }
+      - { id: date, label: "Дата договора", type: date, required: true }
+  - id: lender
+    title: Займодавец
+    role: lender
+    fields:
+      - { id: lender.name, label: "ФИО", type: text, role: lender, bind: name, required: true }
+      - { id: lender.passport, label: "Паспорт: серия и номер", type: text, role: lender, bind: passport, required: true, sensitive: true }
+      - { id: lender.address, label: "Адрес регистрации", type: text, role: lender, bind: address, required: true, sensitive: true }
+  - id: borrower
+    title: Заёмщик
+    role: borrower
+    fields:
+      - { id: borrower.name, label: "ФИО", type: text, role: borrower, bind: name, required: true }
+      - { id: borrower.passport, label: "Паспорт: серия и номер", type: text, role: borrower, bind: passport, required: true, sensitive: true }
+      - { id: borrower.address, label: "Адрес регистрации", type: text, role: borrower, bind: address, required: true, sensitive: true }
+  - id: loan
+    title: Сумма и возврат
+    fields:
+      - { id: amount, label: "Сумма займа, руб.", type: money, required: true, placeholder: "200000" }
+      - id: transfer
+        label: "Как передаются деньги"
+        type: select
+        default: cash
+        options:
+          - { value: cash, label: "наличными при подписании договора" }
+          - { value: bank, label: "переводом на банковский счёт заёмщика" }
+      - { id: return_date, label: "Вернуть до", type: date, required: true }
+      - { id: installments, label: "Возврат частями разрешён", type: toggle, default: true }
+      - id: interest_mode
+        label: "Проценты"
+        type: select
+        default: none
+        hint: "Заём между гражданами до 100 000 руб. по умолчанию беспроцентный (ст. 809 ГК РФ)"
+        options:
+          - { value: none, label: "беспроцентный" }
+          - { value: fixed, label: "с процентами" }
+      - { id: interest_rate, label: "Процентов годовых", type: number, min: 1, max: 100, required: true, show_if: interest_mode == fixed }
+      - { id: receipt, label: "Добавить расписку в получении денег", type: toggle, default: true, hint: "Расписка подтверждает передачу денег (ст. 808 ГК РФ)" }
+
+body:
+  - { id: title, style: title, text: "ДОГОВОР ЗАЙМА" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - { id: preamble, style: para, text: "{{lender.name}}, паспорт {{lender.passport}}, проживающий(-ая) по адресу: {{lender.address}}, именуемый(-ая) в дальнейшем «Займодавец», и {{borrower.name}}, паспорт {{borrower.passport}}, проживающий(-ая) по адресу: {{borrower.address}}, именуемый(-ая) в дальнейшем «Заёмщик», заключили настоящий договор о нижеследующем." }
+  - { id: h-subject, style: heading, text: "ПРЕДМЕТ ДОГОВОРА" }
+  - { id: subject-1, style: clause, text: "Займодавец передаёт в собственность Заёмщику денежные средства в размере {{amount}}, а Заёмщик обязуется возвратить Займодавцу такую же сумму в срок, установленный договором (статья 807 ГК РФ)." }
+  - { id: subject-cash, style: clause, if: transfer == cash, text: "Сумма займа передаётся наличными при подписании договора. Договор считается заключённым с момента передачи денег, что подтверждается распиской Заёмщика." }
+  - { id: subject-bank, style: clause, if: transfer == bank, text: "Сумма займа перечисляется на банковский счёт Заёмщика. Договор считается заключённым с момента зачисления денег на счёт." }
+  - { id: h-interest, style: heading, text: "ПРОЦЕНТЫ" }
+  - { id: interest-none, style: clause, if: interest_mode == none, text: "Заём является беспроцентным: проценты за пользование суммой займа не начисляются (статья 809 ГК РФ)." }
+  - { id: interest-fixed, style: clause, if: interest_mode == fixed, text: "За пользование суммой займа Заёмщик уплачивает проценты в размере {{interest_rate}}% годовых, которые начисляются со дня получения суммы займа до дня её возврата и выплачиваются одновременно с возвратом суммы займа (статья 809 ГК РФ)." }
+  - { id: h-return, style: heading, text: "ВОЗВРАТ ЗАЙМА" }
+  - { id: return-1, style: clause, text: "Заёмщик обязуется возвратить сумму займа не позднее {{return_date}} (статья 810 ГК РФ)." }
+  - { id: return-parts, style: clause, if: installments, text: "Заёмщик вправе возвращать сумму займа частями и досрочно. Каждый возврат подтверждается распиской Займодавца или банковским документом." }
+  - { id: return-late, style: clause, text: "Если Заёмщик не возвращает сумму займа в срок, на неё подлежат уплате проценты в размере, предусмотренном статьёй 395 ГК РФ, со дня, когда она должна была быть возвращена, до дня её возврата (статья 811 ГК РФ)." }
+  - { id: h-final, style: heading, text: "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ" }
+  - { id: final-1, style: clause, text: "Договор заключён в письменной форме (статья 808 ГК РФ) в двух экземплярах, по одному для каждой из сторон." }
+  - { id: h-sign, style: heading, text: "ПОДПИСИ СТОРОН" }
+  - id: sign
+    style: cols
+    cols:
+      - "Займодавец:\n{{lender.name}}\n\n_____________ / {{lender.name}}"
+      - "Заёмщик:\n{{borrower.name}}\n\n_____________ / {{borrower.name}}"
+  - { id: receipt-title, style: title, if: receipt, text: "РАСПИСКА В ПОЛУЧЕНИИ ДЕНЕЖНЫХ СРЕДСТВ" }
+  - { id: receipt-text, style: para, if: receipt, text: "Я, {{borrower.name}}, паспорт {{borrower.passport}}, получил(а) от {{lender.name}}, паспорт {{lender.passport}}, денежные средства в размере {{amount}} по договору займа от {{date}}. Обязуюсь вернуть указанную сумму не позднее {{return_date}}." }
+  - { id: receipt-sign, style: right, if: receipt, text: "{{date}}    _____________ / {{borrower.name}}" }

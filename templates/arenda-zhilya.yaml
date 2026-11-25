@@ -1,0 +1,92 @@
+slug: arenda-zhilya
+version: 1
+order: 3
+title: Договор найма квартиры
+category: realty
+description: "Аренда (наём) жилья между физлицами: срок, плата, залог, коммунальные платежи по главе 35 ГК РФ."
+status: draft
+minutes: 7
+keywords: [аренда, наём, квартира, жильё, комната, арендатор, наниматель, наймодатель, съём]
+roles:
+  - { id: landlord, label: Наймодатель, kinds: [person] }
+  - { id: tenant, label: Наниматель, kinds: [person] }
+
+steps:
+  - id: general
+    title: Общие сведения
+    fields:
+      - { id: city, label: "Город", type: text, required: true, default: "Москва" }
+      - { id: date, label: "Дата договора", type: date, required: true }
+  - id: landlord
+    title: Наймодатель
+    role: landlord
+    hint: "Собственник квартиры. Паспортные данные не передаются ИИ."
+    fields:
+      - { id: landlord.name, label: "ФИО", type: text, role: landlord, bind: name, required: true }
+      - { id: landlord.passport, label: "Паспорт: серия и номер", type: text, role: landlord, bind: passport, required: true, sensitive: true }
+      - { id: landlord.passport_issued, label: "Кем и когда выдан", type: text, role: landlord, bind: passport_issued, sensitive: true }
+      - { id: landlord.phone, label: "Телефон", type: phone, role: landlord, bind: phone, sensitive: true }
+  - id: tenant
+    title: Наниматель
+    role: tenant
+    fields:
+      - { id: tenant.name, label: "ФИО", type: text, role: tenant, bind: name, required: true }
+      - { id: tenant.passport, label: "Паспорт: серия и номер", type: text, role: tenant, bind: passport, required: true, sensitive: true }
+      - { id: tenant.passport_issued, label: "Кем и когда выдан", type: text, role: tenant, bind: passport_issued, sensitive: true }
+      - { id: tenant.phone, label: "Телефон", type: phone, role: tenant, bind: phone, sensitive: true }
+      - { id: residents, label: "Кто будет проживать вместе с нанимателем", type: text, placeholder: "супруга Иванова Мария Петровна" }
+  - id: flat
+    title: Квартира
+    fields:
+      - { id: address, label: "Адрес квартиры", type: text, required: true, placeholder: "г. Москва, ул. Ленина, д. 1, кв. 2" }
+      - { id: rooms, label: "Количество комнат", type: number, min: 1, max: 20, default: 1 }
+      - { id: area, label: "Общая площадь, кв. м", type: text, placeholder: "42,5" }
+      - { id: ownership_doc, label: "Документ о праве собственности", type: text, required: true, placeholder: "выписка из ЕГРН от 01.11.2026" }
+  - id: terms
+    title: Срок и оплата
+    fields:
+      - { id: start_date, label: "Дата начала найма", type: date, required: true }
+      - { id: months, label: "Срок найма, месяцев", type: number, min: 1, max: 60, default: 11, required: true, hint: "Не более 5 лет (ст. 683 ГК РФ). До года: краткосрочный наём" }
+      - { id: rent, label: "Плата в месяц, руб.", type: money, required: true, placeholder: "45000" }
+      - { id: pay_day, label: "Оплата до какого числа месяца", type: number, min: 1, max: 31, default: 5 }
+      - id: utilities
+        label: "Коммунальные платежи"
+        type: select
+        default: tenant
+        options:
+          - { value: tenant, label: "оплачивает наниматель по счётчикам и квитанциям" }
+          - { value: landlord, label: "включены в плату за наём" }
+      - { id: deposit, label: "Обеспечительный платёж (залог)", type: toggle, default: true }
+      - { id: deposit_sum, label: "Сумма залога, руб.", type: money, required: true, show_if: deposit }
+      - { id: pets, label: "Можно с домашними животными", type: toggle }
+
+body:
+  - { id: title, style: title, text: "ДОГОВОР НАЙМА ЖИЛОГО ПОМЕЩЕНИЯ" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - { id: preamble, style: para, text: "{{landlord.name}}, паспорт {{landlord.passport}}{{#if landlord.passport_issued}}, выдан {{landlord.passport_issued}}{{/if}}, именуемый(-ая) в дальнейшем «Наймодатель», с одной стороны, и {{tenant.name}}, паспорт {{tenant.passport}}{{#if tenant.passport_issued}}, выдан {{tenant.passport_issued}}{{/if}}, именуемый(-ая) в дальнейшем «Наниматель», с другой стороны, заключили настоящий договор о нижеследующем." }
+  - { id: h-subject, style: heading, text: "ПРЕДМЕТ ДОГОВОРА" }
+  - { id: subject-1, style: clause, text: "Наймодатель предоставляет Нанимателю за плату во владение и пользование для проживания жилое помещение: {{rooms}}-комнатную квартиру по адресу: {{address}}{{#if area}}, общей площадью {{area}} кв. м{{/if}} (статья 671 ГК РФ)." }
+  - { id: subject-own, style: clause, text: "Квартира принадлежит Наймодателю на праве собственности, что подтверждается документом: {{ownership_doc}}." }
+  - { id: subject-residents, style: clause, if: residents, text: "Совместно с Нанимателем в квартире будут проживать: {{residents}}." }
+  - { id: h-term, style: heading, text: "СРОК НАЙМА" }
+  - { id: term-1, style: clause, text: "Договор заключён на {{months}} мес. с {{start_date}} (статья 683 ГК РФ). Квартира передаётся по акту приёма-передачи с описанием её состояния и имущества." }
+  - { id: h-pay, style: heading, text: "ПЛАТА ЗА НАЁМ" }
+  - { id: pay-1, style: clause, text: "Плата за наём составляет {{rent}} в месяц и вносится не позднее {{pay_day}}-го числа текущего месяца (статья 682 ГК РФ)." }
+  - { id: pay-utilities-tenant, style: clause, if: utilities == tenant, text: "Коммунальные услуги по показаниям приборов учёта и квитанциям оплачивает Наниматель." }
+  - { id: pay-utilities-landlord, style: clause, if: utilities == landlord, text: "Коммунальные платежи включены в плату за наём и оплачиваются Наймодателем." }
+  - { id: pay-deposit, style: clause, if: deposit, text: "При подписании договора Наниматель вносит обеспечительный платёж в размере {{deposit_sum}}. Платёж возвращается Нанимателю при прекращении договора за вычетом задолженности по оплате и стоимости ущерба, причинённого квартире или имуществу." }
+  - { id: h-duties, style: heading, text: "ПРАВА И ОБЯЗАННОСТИ СТОРОН" }
+  - { id: duties-landlord, style: clause, text: "Наймодатель обязан передать Нанимателю свободную квартиру в состоянии, пригодном для проживания (статья 676 ГК РФ)." }
+  - { id: duties-tenant, style: clause, text: "Наниматель обязан использовать квартиру только для проживания, обеспечивать её сохранность, своевременно вносить плату и не производить переустройство без согласия Наймодателя (статья 678 ГК РФ)." }
+  - { id: duties-pets, style: clause, if: pets, text: "Нанимателю разрешено проживание с домашними животными при условии возмещения причинённого ими ущерба." }
+  - { id: duties-no-pets, style: clause, if: "!pets", text: "Проживание с домашними животными допускается только с письменного согласия Наймодателя." }
+  - { id: h-end, style: heading, text: "РАСТОРЖЕНИЕ ДОГОВОРА" }
+  - { id: end-1, style: clause, text: "Наниматель вправе расторгнуть договор, письменно предупредив Наймодателя за три месяца. Договор может быть расторгнут по требованию Наймодателя в судебном порядке в случаях, установленных статьёй 687 ГК РФ." }
+  - { id: h-final, style: heading, text: "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ" }
+  - { id: final-1, style: clause, text: "Договор заключён в письменной форме (статья 674 ГК РФ) в двух экземплярах, по одному для каждой из сторон." }
+  - { id: h-sign, style: heading, text: "ПОДПИСИ СТОРОН" }
+  - id: sign
+    style: cols
+    cols:
+      - "Наймодатель:\n{{landlord.name}}{{#if landlord.phone}}\nТел.: {{landlord.phone}}{{/if}}\n\n_____________ / {{landlord.name}}"
+      - "Наниматель:\n{{tenant.name}}{{#if tenant.phone}}\nТел.: {{tenant.phone}}{{/if}}\n\n_____________ / {{tenant.name}}"

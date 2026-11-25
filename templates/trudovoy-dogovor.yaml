@@ -95,8 +95,8 @@ body:
   - id: preamble
     style: para
     text: >-
-      {{employer.name}}, ИНН {{employer.inn}}, именуемое в дальнейшем «Работодатель», в лице уполномоченного
-      представителя ({{employer.signer_position|lower}}) {{employer.signer}}, действующего на основании {{employer.basis}}, с одной стороны,
+      {{employer.name}}, ИНН {{employer.inn}}, именуемое в дальнейшем «Работодатель», от имени которого
+      действует {{employer.signer_position|lower}} {{employer.signer}} на основании {{employer.basis}}, с одной стороны,
       и {{employee.name}}, именуемый(-ая) в дальнейшем «Работник», с другой стороны, заключили настоящий трудовой договор о нижеследующем.
 
   - { id: h-subject, style: heading, text: ПРЕДМЕТ ДОГОВОРА }

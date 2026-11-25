@@ -2,7 +2,9 @@ package ai
 
 import (
 	"context"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -95,5 +97,28 @@ func TestStubProvider(t *testing.T) {
 	}
 	if !strings.Contains(sb.String(), "ст. 70 ТК РФ") {
 		t.Fatalf("stub should cite provided norms: %q", sb.String())
+	}
+}
+
+// TestTemplatesCiteOnlyKnownNorms guards against invented articles: every
+// article referenced by a rendered template must exist in knowledge/.
+func TestTemplatesCiteOnlyKnownNorms(t *testing.T) {
+	k := kb(t)
+	files, _ := filepath.Glob(filepath.Join("..", "..", "..", "..", "templates", "testdata", "*.golden.txt"))
+	if len(files) < 6 {
+		t.Fatalf("expected golden files for all templates, got %d", len(files))
+	}
+	for _, f := range files {
+		raw, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Normalise "статьи 454, 455 ГК РФ" into separate references.
+		text := regexp.MustCompile(`(\d+), (\d+) (ГК|ТК) РФ`).ReplaceAllString(string(raw), "$1 $3 РФ, ст. $2 $3 РФ")
+		for _, c := range k.Citations(text) {
+			if !c.Verified {
+				t.Errorf("%s cites %s which is not in knowledge/", filepath.Base(f), c.Ref)
+			}
+		}
 	}
 }

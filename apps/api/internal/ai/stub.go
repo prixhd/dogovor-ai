@@ -51,7 +51,7 @@ func lastUser(req Request) string {
 	return ""
 }
 
-var normHeadRe = regexp.MustCompile(`(?m)^## (ТК|ГК) РФ, ст\. ([0-9.]+?)\. (.+)\n((?:.+\n?)+)`)
+var normHeadRe = regexp.MustCompile(`(?m)^## (ТК|ГК) РФ, ст\. (\d+(?:\.\d+)?)\. (.+)\n((?:.+\n?)+)`)
 
 func stubChat(system, _ string) string {
 	m := normHeadRe.FindAllStringSubmatch(system, 2)

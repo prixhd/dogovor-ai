@@ -29,7 +29,7 @@ type Knowledge struct {
 	df     map[string]int
 }
 
-var headRe = regexp.MustCompile(`^##\s*(ТК|ГК)\s*РФ,\s*ст\.\s*([0-9.]+?)\.\s*(.+)$`)
+var headRe = regexp.MustCompile(`^##\s*(ТК|ГК)\s*РФ,\s*ст\.\s*(\d+(?:\.\d+)?)\.\s+(.+)$`)
 
 // LoadKnowledge parses every markdown file in dir.
 func LoadKnowledge(dir string) (*Knowledge, error) {

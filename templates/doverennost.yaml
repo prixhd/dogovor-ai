@@ -1,0 +1,64 @@
+slug: doverennost
+version: 1
+order: 6
+title: Доверенность
+category: power
+description: "Простая письменная доверенность от физлица или организации: полномочия, срок, право передоверия по главе 10 ГК РФ."
+status: draft
+minutes: 4
+keywords: [доверенность, представитель, полномочия, доверитель, поверенный, автомобиль, получение]
+roles:
+  - { id: principal, label: Доверитель, kinds: [person, org, ip] }
+  - { id: agent, label: Представитель, kinds: [person] }
+
+steps:
+  - id: general
+    title: Общие сведения
+    fields:
+      - { id: city, label: "Город", type: text, required: true, default: "Москва" }
+      - { id: date, label: "Дата выдачи", type: date, required: true, hint: "Доверенность без даты ничтожна (ст. 186 ГК РФ)" }
+  - id: principal
+    title: Доверитель
+    role: principal
+    fields:
+      - { id: principal.name, label: "Наименование или ФИО", type: text, role: principal, bind: name, required: true }
+      - { id: principal.signer, label: "Кто подписывает", type: text, role: principal, bind: signer_name, required: true }
+      - { id: principal.signer_position, label: "Должность подписанта", type: text, role: principal, bind: signer_position, hint: "Для организации" }
+      - { id: principal.inn, label: "ИНН", type: inn, role: principal, bind: inn }
+      - { id: principal.ogrn, label: "ОГРН / ОГРНИП", type: ogrn, role: principal, bind: ogrn }
+      - { id: principal.passport, label: "Паспорт (для физлица)", type: text, role: principal, bind: passport, sensitive: true }
+      - { id: principal.address, label: "Адрес", type: text, role: principal, bind: address, required: true, sensitive: true }
+  - id: agent
+    title: Представитель
+    role: agent
+    fields:
+      - { id: agent.name, label: "ФИО представителя", type: text, role: agent, bind: name, required: true }
+      - { id: agent.passport, label: "Паспорт: серия и номер", type: text, role: agent, bind: passport, required: true, sensitive: true }
+      - { id: agent.passport_issued, label: "Кем и когда выдан", type: text, role: agent, bind: passport_issued, sensitive: true }
+  - id: powers
+    title: Полномочия и срок
+    fields:
+      - { id: powers, label: "Что может делать представитель", type: textarea, required: true, placeholder: "получать почтовые отправления на моё имя во всех отделениях АО «Почта России», расписываться в их получении" }
+      - id: validity
+        label: "Срок действия"
+        type: select
+        default: year
+        options:
+          - { value: year, label: "один год (по умолчанию)" }
+          - { value: until, label: "до указанной даты" }
+      - { id: valid_until, label: "Действует до", type: date, required: true, show_if: validity == until }
+      - { id: substitution, label: "Право передоверия", type: toggle, hint: "Без этого представитель действует только лично (ст. 187 ГК РФ)" }
+
+body:
+  - { id: title, style: title, text: "ДОВЕРЕННОСТЬ" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - { id: preamble, style: para, text: "{{principal.name}}{{#if principal.inn}}, ИНН {{principal.inn}}{{/if}}{{#if principal.ogrn}}, ОГРН {{principal.ogrn}}{{/if}}{{#if principal.passport}}, паспорт {{principal.passport}}{{/if}}, адрес: {{principal.address}}{{#if principal.signer_position}} (от имени доверителя действует {{principal.signer_position|lower}} {{principal.signer}}){{/if}}, настоящей доверенностью уполномочивает представителя: {{agent.name}}, паспорт {{agent.passport}}{{#if agent.passport_issued}}, выдан {{agent.passport_issued}}{{/if}} (далее: «Представитель»):" }
+  - { id: powers-1, style: para, text: "{{powers}}." }
+  - { id: powers-docs, style: para, text: "Для этого Представитель вправе подавать и получать документы, подписывать заявления и расписываться за Доверителя, а также совершать иные действия, связанные с выполнением этого поручения (статья 185 ГК РФ)." }
+  - { id: valid-year, style: para, if: validity == year, text: "Доверенность выдана сроком на один год (статья 186 ГК РФ)." }
+  - { id: valid-until, style: para, if: validity == until, text: "Доверенность действительна до {{valid_until}} включительно." }
+  - { id: subst-yes, style: para, if: substitution, text: "Представитель вправе передоверить полномочия по настоящей доверенности другому лицу (статья 187 ГК РФ)." }
+  - { id: subst-no, style: para, if: "!substitution", text: "Полномочия по настоящей доверенности не могут быть переданы другим лицам." }
+  - { id: notary-note, style: para, text: "Доверенность на сделки, требующие нотариальной формы, и на подачу заявлений о государственной регистрации прав должна быть удостоверена нотариально (статья 185.1 ГК РФ)." }
+  - { id: agent-sign, style: para, text: "Подпись Представителя _____________ / {{agent.name}} удостоверяю." }
+  - { id: principal-sign, style: right, text: "{{#if principal.signer_position}}{{principal.signer_position}}\n{{/if}}_____________ / {{principal.signer}}" }

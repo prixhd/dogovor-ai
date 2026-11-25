@@ -1,0 +1,92 @@
+slug: okazanie-uslug
+version: 1
+order: 2
+title: Договор оказания услуг
+category: services
+description: "Договор ГПХ с исполнителем: предмет, сроки, цена, порядок приёмки и оплаты по главе 39 ГК РФ."
+status: draft
+minutes: 6
+keywords: [услуги, гпх, исполнитель, заказчик, подрядчик, фриланс, самозанятый]
+roles:
+  - { id: customer, label: Заказчик, kinds: [org, ip, person] }
+  - { id: executor, label: Исполнитель, kinds: [person, ip, org] }
+
+steps:
+  - id: general
+    title: Общие сведения
+    fields:
+      - { id: number, label: "Номер договора", type: text, required: true, placeholder: "1" }
+      - { id: city, label: "Город", type: text, required: true, default: "Москва" }
+      - { id: date, label: "Дата договора", type: date, required: true }
+  - id: customer
+    title: Заказчик
+    role: customer
+    fields:
+      - { id: customer.name, label: "Наименование или ФИО", type: text, role: customer, bind: name, required: true }
+      - { id: customer.signer, label: "ФИО подписанта", type: text, role: customer, bind: signer_name, required: true }
+      - { id: customer.basis, label: "Действует на основании", type: text, role: customer, bind: signer_basis, hint: "Для организации: «Устава», для физлица оставьте пустым" }
+      - { id: customer.inn, label: "ИНН", type: inn, role: customer, bind: inn }
+      - { id: customer.address, label: "Адрес", type: text, role: customer, bind: address, required: true, sensitive: true }
+  - id: executor
+    title: Исполнитель
+    role: executor
+    fields:
+      - { id: executor.name, label: "Наименование или ФИО", type: text, role: executor, bind: name, required: true }
+      - { id: executor.signer, label: "ФИО подписанта", type: text, role: executor, bind: signer_name, required: true }
+      - { id: executor.inn, label: "ИНН", type: inn, role: executor, bind: inn }
+      - { id: executor.address, label: "Адрес", type: text, role: executor, bind: address, required: true, sensitive: true }
+      - { id: executor.bank, label: "Банк", type: text, role: executor, bind: bank }
+      - { id: executor.bik, label: "БИК", type: bik, role: executor, bind: bik }
+      - { id: executor.account, label: "Расчётный счёт", type: account, role: executor, bind: account }
+  - id: subject
+    title: Услуги и сроки
+    fields:
+      - { id: services, label: "Какие услуги оказываются", type: textarea, required: true, placeholder: "разработка дизайна сайта: главная страница и 5 внутренних страниц" }
+      - { id: start_date, label: "Начало оказания услуг", type: date, required: true }
+      - { id: end_date, label: "Срок окончания", type: date, required: true }
+      - { id: personal, label: "Исполнитель оказывает услуги лично", type: toggle, default: true, hint: "Ст. 780 ГК РФ: по умолчанию лично" }
+  - id: price
+    title: Цена и оплата
+    fields:
+      - { id: price, label: "Стоимость услуг, руб.", type: money, required: true, placeholder: "50000" }
+      - id: payment
+        label: "Порядок оплаты"
+        type: select
+        default: after
+        options:
+          - { value: after, label: "после подписания акта" }
+          - { value: prepay, label: "предоплата с доплатой после акта" }
+      - { id: prepay_percent, label: "Предоплата, %", type: number, min: 1, max: 99, default: 30, required: true, show_if: payment == prepay }
+      - { id: pay_days, label: "Срок оплаты, рабочих дней", type: number, min: 1, max: 60, default: 5 }
+      - { id: penalty, label: "Неустойка за просрочку", type: toggle, hint: "Соглашение о неустойке только письменно (ст. 331 ГК РФ)" }
+      - { id: penalty_rate, label: "Пеня, % в день", type: text, default: "0,1", required: true, show_if: penalty }
+
+body:
+  - { id: title, style: title, text: "ДОГОВОР ВОЗМЕЗДНОГО ОКАЗАНИЯ УСЛУГ № {{number}}" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - { id: preamble, style: para, text: "{{customer.name}}, именуемый(-ое) в дальнейшем «Заказчик»{{#if customer.basis}}, от имени которого действует {{customer.signer}} на основании {{customer.basis}}{{/if}}, с одной стороны, и {{executor.name}}, именуемый(-ое) в дальнейшем «Исполнитель», с другой стороны, заключили настоящий договор о нижеследующем." }
+  - { id: h-subject, style: heading, text: "ПРЕДМЕТ ДОГОВОРА" }
+  - { id: subject-1, style: clause, text: "Исполнитель обязуется по заданию Заказчика оказать следующие услуги: {{services}}, а Заказчик обязуется оплатить эти услуги (статья 779 ГК РФ)." }
+  - { id: subject-terms, style: clause, text: "Срок оказания услуг: с {{start_date}} по {{end_date}}." }
+  - { id: subject-personal, style: clause, if: personal, text: "Исполнитель оказывает услуги лично (статья 780 ГК РФ)." }
+  - { id: subject-third, style: clause, if: "!personal", text: "Исполнитель вправе привлекать третьих лиц, оставаясь ответственным перед Заказчиком за их действия." }
+  - { id: h-price, style: heading, text: "СТОИМОСТЬ И ПОРЯДОК ОПЛАТЫ" }
+  - { id: price-1, style: clause, text: "Стоимость услуг составляет {{price}}." }
+  - { id: price-after, style: clause, if: payment == after, text: "Заказчик оплачивает услуги в течение {{pay_days}} рабочих дней после подписания сторонами акта оказанных услуг (статья 781 ГК РФ)." }
+  - { id: price-prepay, style: clause, if: payment == prepay, text: "Заказчик вносит предоплату в размере {{prepay_percent}}% стоимости услуг в течение {{pay_days}} рабочих дней после подписания договора, оставшуюся часть: в течение {{pay_days}} рабочих дней после подписания акта оказанных услуг (статья 781 ГК РФ)." }
+  - { id: h-accept, style: heading, text: "ПРИЁМКА УСЛУГ" }
+  - { id: accept-1, style: clause, text: "По окончании оказания услуг Исполнитель передаёт Заказчику акт оказанных услуг. Заказчик в течение пяти рабочих дней подписывает акт или направляет мотивированный отказ." }
+  - { id: accept-2, style: clause, text: "Если в указанный срок Заказчик не подписал акт и не направил мотивированный отказ, услуги считаются принятыми." }
+  - { id: h-liability, style: heading, text: "ОТВЕТСТВЕННОСТЬ И РАСТОРЖЕНИЕ" }
+  - { id: liab-1, style: clause, text: "Стороны исполняют обязательства надлежащим образом в соответствии с условиями договора (статья 309 ГК РФ)." }
+  - { id: liab-penalty, style: clause, if: penalty, text: "За просрочку оплаты или оказания услуг виновная сторона уплачивает другой стороне пеню в размере {{penalty_rate}}% от неоплаченной (неоказанной) суммы за каждый день просрочки (статья 330 ГК РФ)." }
+  - { id: liab-refuse, style: clause, text: "Заказчик вправе отказаться от исполнения договора при условии оплаты Исполнителю фактически понесённых им расходов. Исполнитель вправе отказаться от исполнения договора при условии полного возмещения Заказчику убытков (статья 782 ГК РФ)." }
+  - { id: h-final, style: heading, text: "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ" }
+  - { id: final-1, style: clause, text: "Споры разрешаются путём переговоров, а при недостижении согласия: в суде по месту нахождения ответчика." }
+  - { id: final-2, style: clause, text: "Договор составлен в двух экземплярах, имеющих одинаковую юридическую силу." }
+  - { id: h-sign, style: heading, text: "РЕКВИЗИТЫ И ПОДПИСИ СТОРОН" }
+  - id: sign
+    style: cols
+    cols:
+      - "Заказчик:\n{{customer.name}}{{#if customer.inn}}\nИНН {{customer.inn}}{{/if}}\nАдрес: {{customer.address}}\n\n_____________ / {{customer.signer}}"
+      - "Исполнитель:\n{{executor.name}}{{#if executor.inn}}\nИНН {{executor.inn}}{{/if}}\nАдрес: {{executor.address}}{{#if executor.account}}\nр/с {{executor.account}}, {{executor.bank}}, БИК {{executor.bik}}{{/if}}\n\n_____________ / {{executor.signer}}"

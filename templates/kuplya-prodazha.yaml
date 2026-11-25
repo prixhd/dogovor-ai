@@ -1,0 +1,89 @@
+slug: kuplya-prodazha
+version: 1
+order: 4
+title: Договор купли-продажи
+category: sale
+description: "Продажа вещи между физлицами или компаниями: товар, цена, передача, качество по главе 30 ГК РФ."
+status: draft
+minutes: 5
+keywords: [купля, продажа, покупка, продавец, покупатель, товар, вещь, имущество]
+roles:
+  - { id: seller, label: Продавец, kinds: [person, ip, org] }
+  - { id: buyer, label: Покупатель, kinds: [person, ip, org] }
+
+steps:
+  - id: general
+    title: Общие сведения
+    fields:
+      - { id: city, label: "Город", type: text, required: true, default: "Москва" }
+      - { id: date, label: "Дата договора", type: date, required: true }
+  - id: seller
+    title: Продавец
+    role: seller
+    fields:
+      - { id: seller.name, label: "Наименование или ФИО", type: text, role: seller, bind: name, required: true }
+      - { id: seller.signer, label: "ФИО подписанта", type: text, role: seller, bind: signer_name, required: true }
+      - { id: seller.inn, label: "ИНН", type: inn, role: seller, bind: inn }
+      - { id: seller.address, label: "Адрес", type: text, role: seller, bind: address, required: true, sensitive: true }
+  - id: buyer
+    title: Покупатель
+    role: buyer
+    fields:
+      - { id: buyer.name, label: "Наименование или ФИО", type: text, role: buyer, bind: name, required: true }
+      - { id: buyer.signer, label: "ФИО подписанта", type: text, role: buyer, bind: signer_name, required: true }
+      - { id: buyer.inn, label: "ИНН", type: inn, role: buyer, bind: inn }
+      - { id: buyer.address, label: "Адрес", type: text, role: buyer, bind: address, required: true, sensitive: true }
+  - id: goods
+    title: Товар
+    fields:
+      - { id: goods, label: "Что продаётся", type: textarea, required: true, placeholder: "ноутбук Apple MacBook Air 13 (M3), серийный номер C02XXXXX, в комплекте зарядное устройство" }
+      - { id: quantity, label: "Количество", type: text, required: true, default: "1 шт." }
+      - id: condition
+        label: "Состояние"
+        type: select
+        default: used
+        options:
+          - { value: new, label: "новый" }
+          - { value: used, label: "бывший в употреблении" }
+      - { id: defects, label: "Известные недостатки", type: textarea, placeholder: "царапина на крышке", show_if: condition == used }
+  - id: price
+    title: Цена и передача
+    fields:
+      - { id: price, label: "Цена, руб.", type: money, required: true, placeholder: "60000" }
+      - id: payment
+        label: "Когда оплачивается"
+        type: select
+        default: on_transfer
+        options:
+          - { value: on_transfer, label: "в момент передачи товара" }
+          - { value: before, label: "до передачи товара" }
+      - { id: transfer_date, label: "Дата передачи товара", type: date, required: true }
+      - { id: transfer_place, label: "Место передачи", type: text, placeholder: "г. Москва, ул. Ленина, д. 1" }
+
+body:
+  - { id: title, style: title, text: "ДОГОВОР КУПЛИ-ПРОДАЖИ" }
+  - { id: place, style: subtitle, text: "г. {{city}}                                        {{date}}" }
+  - { id: preamble, style: para, text: "{{seller.name}}, именуемый(-ое) в дальнейшем «Продавец», с одной стороны, и {{buyer.name}}, именуемый(-ое) в дальнейшем «Покупатель», с другой стороны, заключили настоящий договор о нижеследующем." }
+  - { id: h-subject, style: heading, text: "ПРЕДМЕТ ДОГОВОРА" }
+  - { id: subject-1, style: clause, text: "Продавец обязуется передать в собственность Покупателя, а Покупатель обязуется принять и оплатить следующий товар: {{goods}}, количество: {{quantity}} (статьи 454, 455 ГК РФ)." }
+  - { id: subject-cond, style: clause, text: "Состояние товара: {{condition}}." }
+  - { id: subject-defects, style: clause, if: condition == used && defects, text: "Покупатель уведомлён о следующих недостатках товара: {{defects}}. Продавец не отвечает за недостатки, о которых Покупатель был уведомлён до заключения договора." }
+  - { id: subject-free, style: clause, text: "Продавец гарантирует, что товар принадлежит ему на праве собственности, не продан, не заложен, в споре и под арестом не состоит." }
+  - { id: h-price, style: heading, text: "ЦЕНА И ПОРЯДОК РАСЧЁТОВ" }
+  - { id: price-1, style: clause, text: "Цена товара составляет {{price}}." }
+  - { id: price-on, style: clause, if: payment == on_transfer, text: "Покупатель оплачивает товар в момент его передачи." }
+  - { id: price-before, style: clause, if: payment == before, text: "Покупатель оплачивает товар полностью до его передачи." }
+  - { id: h-transfer, style: heading, text: "ПЕРЕДАЧА ТОВАРА" }
+  - { id: transfer-1, style: clause, text: "Товар передаётся Покупателю {{transfer_date}}{{#if transfer_place}} по адресу: {{transfer_place}}{{/if}}. Передача подтверждается подписанием акта приёма-передачи или распиской." }
+  - { id: transfer-risk, style: clause, text: "Право собственности и риск случайной гибели товара переходят к Покупателю с момента передачи товара." }
+  - { id: h-quality, style: heading, text: "КАЧЕСТВО ТОВАРА" }
+  - { id: quality-1, style: clause, text: "Продавец передаёт товар, качество которого соответствует договору, а при отсутствии таких условий: пригодный для целей, для которых товар такого рода обычно используется (статья 469 ГК РФ)." }
+  - { id: quality-2, style: clause, text: "При обнаружении недостатков, не оговорённых Продавцом, Покупатель вправе предъявить требования, предусмотренные статьёй 475 ГК РФ." }
+  - { id: h-final, style: heading, text: "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ" }
+  - { id: final-1, style: clause, text: "Договор вступает в силу с момента подписания и составлен в двух экземплярах, по одному для каждой из сторон." }
+  - { id: h-sign, style: heading, text: "РЕКВИЗИТЫ И ПОДПИСИ СТОРОН" }
+  - id: sign
+    style: cols
+    cols:
+      - "Продавец:\n{{seller.name}}{{#if seller.inn}}\nИНН {{seller.inn}}{{/if}}\nАдрес: {{seller.address}}\n\n_____________ / {{seller.signer}}"
+      - "Покупатель:\n{{buyer.name}}{{#if buyer.inn}}\nИНН {{buyer.inn}}{{/if}}\nАдрес: {{buyer.address}}\n\n_____________ / {{buyer.signer}}"
