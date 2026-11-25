@@ -3,13 +3,14 @@
 Обновляется Claude Code после каждого этапа.
 
 ## Текущий этап
-MVP (`docs/08-mvp-plan.md`). Готово: M0, M1.
+MVP (`docs/08-mvp-plan.md`). Готово: M0–M2.
 
 ## Журнал
 - 2026-11-25: подготовлена документация (`docs/`).
 - 2026-11-25, M0: монорепо (`apps/api` Go+chi+pgx+goose, `apps/web` Next.js 15 + Tailwind 4), Postgres в Docker Compose, `Makefile` (`dev`, `test`, `lint`, `up`, `e2e`), `.env.example`, `/healthz` и `/readyz`, CI-скелет GitHub Actions. Миграции встроены в бинарь и применяются при старте.
 
 - 2026-11-25, M1: дизайн-система по разделу 4 `08-mvp-plan.md`: токены светлой/тёмной темы (CSS-переменные + Tailwind 4 `@theme`), шрифты Inter/Manrope/PT Serif (кириллица), компоненты (Button, Input/Select/Textarea/Toggle/Checkbox, Card, Tag, Skeleton, Table, Modal на `<dialog>`, Toast), шапка/подвал, переключатель темы без мигания, витрина `/ui`.
+- 2026-11-25, M2: главная: hero с полем запроса (поиск по каталогу + «Спросить ИИ»), макет листа, 6 популярных документов (из API), закрепляющиеся темы 01–04 (`position: sticky` внутри секции + `animation-timeline` для уменьшения/затухания, без анимации при `prefers-reduced-motion`), тёмный ИИ-блок с публичным чатом, безопасность, FAQ, CTA. Видео анимации в `design/anim/` нет: сделано по описанию.
 
 ## Как запускать
 - `make dev`: Postgres в Docker, api (`:8080`) и web (`:3000`) локально. Web проксирует `/api/*` на api.
