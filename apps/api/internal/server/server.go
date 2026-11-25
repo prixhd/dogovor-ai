@@ -25,6 +25,7 @@ type Server struct {
 	Log       *slog.Logger
 	Templates *tmpl.Registry
 	Yandex    YandexEndpoints
+	AI        AI
 }
 
 // Router builds the chi router with all routes.
@@ -59,6 +60,11 @@ func (s *Server) Router() http.Handler {
 		r.Get("/auth/yandex/start", s.yandexStart)
 		r.Get("/auth/yandex/callback", s.yandexCallback)
 
+		r.Get("/ai/quota", s.aiQuota)
+		r.Post("/ai/chat", s.aiChat)
+		r.Post("/ai/edit", s.aiEdit)
+		r.Post("/ai/extract", s.aiExtract)
+
 		r.Group(func(r chi.Router) {
 			r.Use(requireUser)
 			r.Get("/documents", s.listDocuments)
@@ -84,5 +90,10 @@ func New(cfg config.Config, pool *pgxpool.Pool, log *slog.Logger) (*Server, erro
 		return nil, err
 	}
 	log.Info("templates loaded", "count", len(reg.List()), "pdf", tmpl.PDFAvailable())
-	return &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: log, Templates: reg, Yandex: defaultYandex}, nil
+	s := &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: log, Templates: reg, Yandex: defaultYandex}
+	if err := s.initAI(); err != nil {
+		return nil, err
+	}
+	log.Info("ai ready", "provider", s.AI.Provider.Name(), "norms", len(s.AI.Knowledge.Chunks))
+	return s, nil
 }

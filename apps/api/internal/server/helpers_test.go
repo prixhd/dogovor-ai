@@ -15,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/dogovor-ai/api/internal/ai"
 	"github.com/dogovor-ai/api/internal/config"
 	"github.com/dogovor-ai/api/internal/store"
 	"github.com/dogovor-ai/api/internal/testutil"
@@ -32,6 +33,7 @@ func newTestServer(t *testing.T, mutate ...func(*Server)) (*httptest.Server, *Se
 	cfg := config.Config{AppURL: "http://app.test", TrustProxy: true, LLMProvider: "stub", AIGuestLimit: 3, AIUserLimit: 5, AIGlobalLimit: 1000,
 		KnowledgeDir: filepath.Join("..", "..", "..", "..", "knowledge")}
 	s := &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: slog.New(slog.NewTextHandler(io.Discard, nil)), Templates: reg, Yandex: defaultYandex}
+	s.AI.Provider = ai.Stub{}
 	for _, m := range mutate {
 		m(s)
 	}
