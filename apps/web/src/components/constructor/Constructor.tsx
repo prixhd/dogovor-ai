@@ -20,10 +20,10 @@ import { useDocument } from "./useDocument";
 
 export type Mode = "form" | "cards" | "ai";
 
-const modes: { id: Mode; label: string; icon: typeof ClipboardList }[] = [
-  { id: "form", label: "Конструктор", icon: ClipboardList },
-  { id: "cards", label: "По карточке", icon: IdCard },
-  { id: "ai", label: "С ИИ", icon: Sparkles },
+const modes: { id: Mode; label: string; short: string; icon: typeof ClipboardList }[] = [
+  { id: "form", label: "Конструктор", short: "Анкета", icon: ClipboardList },
+  { id: "cards", label: "По карточке", short: "Карточки", icon: IdCard },
+  { id: "ai", label: "С ИИ", short: "ИИ", icon: Sparkles },
 ];
 
 export function Constructor({ template: t, docId, initialMode = "form" }: { template: Template; docId: string | null; initialMode?: Mode }) {
@@ -105,6 +105,7 @@ export function Constructor({ template: t, docId, initialMode = "form" }: { temp
     setBusy(format);
     try {
       const id = await d.save();
+      if (!docId) router.replace(`/c/${t.slug}?doc=${id}`, { scroll: false });
       const blob = await api<Blob>(`/documents/${id}/export?format=${format}`);
       const url = URL.createObjectURL(blob);
       const a = Object.assign(document.createElement("a"), { href: url, download: `${d.title}.${format}` });
@@ -134,7 +135,7 @@ export function Constructor({ template: t, docId, initialMode = "form" }: { temp
       {/* Toolbar */}
       <div className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-1 basis-full items-center gap-3 sm:basis-0">
             <Link href="/catalog" className="grid size-9 shrink-0 place-items-center rounded-full hover:bg-surface-2" aria-label="Назад в каталог"><ArrowLeft className="size-4" /></Link>
             <div className="min-w-0">
               <input
@@ -150,7 +151,7 @@ export function Constructor({ template: t, docId, initialMode = "form" }: { temp
               </div>
             </div>
           </div>
-          <div role="tablist" aria-label="Режим" className="order-3 flex w-full items-center gap-1 rounded-full border border-line bg-surface p-1 md:order-none md:w-auto">
+          <div role="tablist" aria-label="Режим" className="order-3 flex w-full items-center gap-1 rounded-full border border-line bg-surface p-1 xl:order-none xl:w-auto">
             {modes.map((m) => (
               <button
                 key={m.id}
@@ -158,16 +159,17 @@ export function Constructor({ template: t, docId, initialMode = "form" }: { temp
                 aria-selected={mode === m.id}
                 onClick={() => setMode(m.id)}
                 className={cn(
-                  "flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors md:flex-none",
+                  "flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors xl:flex-none",
                   mode === m.id ? (m.id === "ai" ? "bg-ai text-white" : "bg-text text-bg") : "text-text-2 hover:text-text",
                 )}
               >
-                <m.icon className="size-4" />
-                {m.label}
+                <m.icon className="size-4 shrink-0" />
+                <span className="whitespace-nowrap sm:hidden">{m.short}</span>
+                <span className="hidden whitespace-nowrap sm:inline">{m.label}</span>
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 max-sm:w-full max-sm:[&>*:last-child]:flex-1">
             <Button variant="secondary" size="sm" onClick={save} loading={busy === "save"} aria-label="Сохранить"><Save className="size-4" /><span className="hidden lg:inline">Сохранить</span></Button>
             <DownloadMenu busy={busy} onDownload={download} />
           </div>
@@ -264,7 +266,7 @@ function DownloadMenu({ busy, onDownload }: { busy: string; onDownload: (f: "doc
   const [open, setOpen] = useState(false);
   return (
     <div className="relative flex">
-      <Button size="sm" onClick={() => onDownload("docx")} loading={busy === "docx"} className="rounded-r-none pr-3"><Download className="size-4" />Скачать .docx</Button>
+      <Button size="sm" onClick={() => onDownload("docx")} className="flex-1 rounded-r-none pr-3" loading={busy === "docx"}><Download className="size-4" />Скачать .docx</Button>
       <Button size="sm" onClick={() => setOpen(!open)} aria-label="Другие форматы" aria-expanded={open} className="rounded-l-none border-l border-white/25 px-2.5"><ChevronDown className="size-4" /></Button>
       {open && (
         <div className="absolute right-0 top-11 z-40 w-48 animate-rise rounded-2xl border border-line bg-surface p-1.5 shadow-lift" onMouseLeave={() => setOpen(false)}>

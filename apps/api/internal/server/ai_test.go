@@ -153,3 +153,13 @@ func TestAIExtractMapsToRoleFields(t *testing.T) {
 		t.Fatalf("fields: %+v", res.Fields)
 	}
 }
+
+func TestAIChatWithDocumentRanksByQuestion(t *testing.T) {
+	ts, _ := newTestServer(t)
+	c := newClient(t, ts)
+	doc := map[string]any{"templateSlug": "trudovoy-dogovor", "data": mustFixture(t), "edits": map[string]any{}}
+	r := chat(c, "Какой максимальный испытательный срок?", doc)
+	if !strings.Contains(r.Body, `"ref":"ст. 70 ТК РФ"`) {
+		t.Fatalf("document context must not outrank the question topic: %s", r.Body)
+	}
+}

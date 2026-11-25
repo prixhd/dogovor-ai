@@ -50,7 +50,7 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ip := httpx.ClientIP(r, s.Cfg.TrustProxy)
-	if !s.limit(w, r, "register:"+ip, 10, time.Hour) {
+	if !s.limit(w, r, "register:"+ip, max(s.Cfg.RegisterPerHour, 1), time.Hour) {
 		return
 	}
 	fieldErrs := map[string]string{}

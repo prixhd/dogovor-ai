@@ -220,11 +220,12 @@ func (s *Server) aiChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	question := msgs[len(msgs)-1].Content
+	docTitle := ""
 	var sys strings.Builder
 	sys.WriteString(baseRules)
 	if req.Document != nil {
 		if t, doc, ok := s.renderForAI(*req.Document); ok {
-			question += " " + t.Title
+			docTitle = t.Title
 			text := []rune(doc.Text())
 			if len(text) > 6000 {
 				text = text[:6000]
@@ -232,7 +233,20 @@ func (s *Server) aiChat(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(&sys, "\n\nПользователь работает с документом «%s». Его текст:\n<document>\n%s\n</document>", t.Title, string(text))
 		}
 	}
+	// Rank norms by the question itself; the document title only tops up the
+	// list (otherwise "Трудовой договор" would outrank the actual topic).
 	norms := s.AI.Knowledge.Search(question, 4)
+	if len(norms) < 4 && docTitle != "" {
+		seen := map[string]bool{}
+		for _, n := range norms {
+			seen[n.Ref] = true
+		}
+		for _, n := range s.AI.Knowledge.Search(docTitle, 4) {
+			if len(norms) < 4 && !seen[n.Ref] {
+				norms = append(norms, n)
+			}
+		}
+	}
 	fmt.Fprintf(&sys, "\n\n<norms>\n%s</norms>", ai.Format(norms))
 
 	flusher, _ := w.(http.Flusher)

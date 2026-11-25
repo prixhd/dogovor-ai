@@ -11,3 +11,5 @@ apps/api/bin/
 .governor/
 .DS_Store
 coverage/
+.claude/launch.json
+apps/web/.next-prod/

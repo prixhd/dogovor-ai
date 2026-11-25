@@ -30,7 +30,7 @@ func newTestServer(t *testing.T, mutate ...func(*Server)) (*httptest.Server, *Se
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg := config.Config{AppURL: "http://app.test", TrustProxy: true, LLMProvider: "stub", AIGuestLimit: 3, AIUserLimit: 5, AIGlobalLimit: 1000,
+	cfg := config.Config{AppURL: "http://app.test", TrustProxy: true, LLMProvider: "stub", AIGuestLimit: 3, AIUserLimit: 5, AIGlobalLimit: 1000, RegisterPerHour: 10,
 		KnowledgeDir: filepath.Join("..", "..", "..", "..", "knowledge")}
 	s := &Server{Cfg: cfg, DB: pool, Store: store.New(pool), Log: slog.New(slog.NewTextHandler(io.Discard, nil)), Templates: reg, Yandex: defaultYandex}
 	s.AI.Provider = ai.Stub{}

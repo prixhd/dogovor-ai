@@ -19,7 +19,12 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ doc?: 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await fetchTemplate((await params).slug);
   if (!t) return { title: "Документ не найден" };
-  return { title: `${t.title}: заполнить онлайн`, description: t.description };
+  return {
+    title: `${t.title}: заполнить онлайн`,
+    description: t.description,
+    alternates: { canonical: `/c/${t.slug}` },
+    openGraph: { title: `${t.title}: образец и конструктор`, description: t.description, type: "website" },
+  };
 }
 
 export default async function ConstructorPage({ params, searchParams }: Props) {

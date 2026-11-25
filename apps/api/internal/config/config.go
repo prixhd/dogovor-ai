@@ -28,6 +28,7 @@ type Config struct {
 	AIGuestLimit       int
 	AIUserLimit        int
 	AIGlobalLimit      int
+	RegisterPerHour    int
 }
 
 // Load reads configuration from the environment with sane local defaults.
@@ -53,6 +54,7 @@ func Load() Config {
 		AIGuestLimit:       envInt("AI_DAILY_GUEST_LIMIT", 5),
 		AIUserLimit:        envInt("AI_DAILY_USER_LIMIT", 30),
 		AIGlobalLimit:      envInt("AI_DAILY_GLOBAL_LIMIT", 500),
+		RegisterPerHour:    envInt("AUTH_REGISTER_PER_HOUR", 10),
 	}
 }
 
