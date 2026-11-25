@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
+/* Theme switch: light by default, dark via [data-theme="dark"] on <html>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f6f3ec;
+  --surface: #ffffff;
+  --surface-2: #efebe1;
+  --line: #e2dcce;
+  --text: #14151a;
+  --text-2: #6b6f78;
+  --accent: #ef5b50;
+  --accent-hover: #dd4a40;
+  --accent-ink: #ffffff;
+  --ai: #4f6bff;
+  --ai-soft: #e8ecff;
+  --success: #2fa67a;
+  --danger: #d94b4b;
+  --shadow: 0 8px 30px rgba(20, 21, 26, 0.06);
+  --shadow-lg: 0 24px 60px rgba(20, 21, 26, 0.1);
+  --ink-block: #111216;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0e0f12;
+  --surface: #16181d;
+  --surface-2: #1f2229;
+  --line: #2a2e36;
+  --text: #eceef2;
+  --text-2: #9aa1ad;
+  --accent: #ff7a6e;
+  --accent-hover: #ff8f85;
+  --accent-ink: #14151a;
+  --ai: #8fa2ff;
+  --ai-soft: #1d2340;
+  --success: #5fd3a0;
+  --danger: #ff6b6b;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --ink-block: #08090b;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-ai: var(--ai);
+  --color-ai-soft: var(--ai-soft);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-ink-block: var(--ink-block);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-manrope), var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-pt-serif), "Times New Roman", serif;
+  --shadow-soft: var(--shadow);
+  --shadow-lift: var(--shadow-lg);
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-padding-top: 88px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ai);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* The document "sheet" always stays white with serif type, even in dark mode. */
+.doc-sheet {
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: var(--font-serif);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-rise { animation: rise 0.5s cubic-bezier(.2,.7,.2,1) both; }
+
+/* ---- Sticky topics (landing): headers pin under the site header and the
+   next section pushes the previous one out. Scroll-driven shrink/fade where
+   supported; plain sticky otherwise. ---- */
+.topic { position: relative; view-timeline-name: --topic; }
+.topic-head {
+  position: sticky;
+  top: 64px;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+}
+@supports (animation-timeline: view()) {
+  .topic-head-inner {
+    animation: topic-pin linear both;
+    animation-timeline: --topic;
+    animation-range: exit 30% exit 90%;
+  }
+}
+@keyframes topic-pin {
+  to { transform: scale(0.94); opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .topic-head { position: static; }
 }
